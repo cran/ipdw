@@ -38,19 +38,19 @@
       #check output with - zoom(A4,breaks=seq(from=0,to=5,by=1),col=rainbow(5))
       #showTmpFiles()
       
-      rf<-writeRaster(A4,filename=paste(tempdir(),"\\",yearmon,"A4ras",i,".grd",sep=""),overwrite=T,NAflag=-99999)
+      rf<-writeRaster(A4,filename=file.path(tempdir(),paste(yearmon,"A4ras",i,".grd",sep="")),overwrite=T,NAflag=-99999)
       #print(paste(round((i/nrow(spdf))*100,1),"% complete"))
     }
      
   
   #create raster stack
-  raster_data<-list.files(path=paste(tempdir(),"\\",sep=""),pattern=paste(yearmon,"A4ras*",sep=""),full.names=T)
+  raster_data<-list.files(path=file.path(tempdir()),pattern=paste(yearmon,"A4ras*",sep=""),full.names=T)
   raster_data<-raster_data[grep(".grd",raster_data,fixed=T)]
   as.numeric(gsub('.*A4ras([0123456789]*)\\.grd$','\\1',raster_data))->fileNum
   raster_data<-raster_data[order(fileNum)]
   rstack<-stack(raster_data)
   rstack<-reclassify(rstack,c(-99999,-99999,NA))
-
+  file.remove(list.files(path=file.path(tempdir()),pattern=paste(yearmon,"A4ras*",sep=""),full.names=T))
   
   return(rstack)
 }

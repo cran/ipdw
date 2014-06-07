@@ -27,7 +27,7 @@
   
     
   #ipdwInterp
-  final.ipdw<-ipdwInterp(spdf,pathdists,paramlist,yearmon,removefile)
+  final.ipdw<-ipdwInterp(spdf,pathdists,paramlist,yearmon,removefile=TRUE)
   
   return(final.ipdw)  
   

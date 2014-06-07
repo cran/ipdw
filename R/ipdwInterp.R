@@ -55,11 +55,11 @@
       param.value2<-as.vector(unlist(param.value[1]))
       ras.mult<-ras.weight*param.value2
       
-      rf<-writeRaster(ras.mult,filename=paste(tempdir(),"\\",paramlist[k],"A5ras",i,".grd",sep=""),overwrite=T)
+      rf<-writeRaster(ras.mult,filename=file.path(tempdir(),paste(paramlist[k],"A5ras",i,".grd",sep="")),overwrite=T)
       #rf<-writeRaster(ras.mult,filename=paste("DF_Surfaces/",yearmon,"/",paramlist[k],"A5ras",i,".grd",sep=""),overwrite=T)
     }
     
-    raster_data_full<-list.files(path=paste(tempdir(),"\\",sep=""),pattern=paste(paramlist[k],"A5ras*",sep=""),full.names=T)
+    raster_data_full<-list.files(path=file.path(tempdir()),pattern=paste(paramlist[k],"A5ras*",sep=""),full.names=T)
     #raster_data_full<-list.files(path=paste(getwd(),"/DF_Surfaces/",yearmon,"/",sep=""),pattern=paste(paramlist[k],"A5ras*",sep=""),full.names=T)
     raster_data<-raster_data_full[grep(".grd",raster_data_full,fixed=T)]
     as.numeric(gsub('.*A5ras([0123456789]*)\\.grd$','\\1',raster_data))->fileNum
@@ -83,8 +83,9 @@
     return(finalraster)
   }
 #optional removal of path distances
+file.remove(list.files(path=file.path(tempdir()),pattern=paste(yearmon,"A4ras*",sep="")))
 if(removefile==TRUE){
-  file.remove(list.files(path=paste(tempdir(),"\\",sep=""),pattern=paste(yearmon,"A4ras*",sep=""),full.names=T))
-  file.remove(raster_data_full)
+    file.remove(list.files(path=file.path(tempdir()),pattern=paste(paramlist[k],"A5ras*",sep=""),full.names=T))
+  #file.remove(raster_data_full)
 }
 }
