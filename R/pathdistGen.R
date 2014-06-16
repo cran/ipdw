@@ -1,5 +1,5 @@
 #'@name pathdistGen
-#'@title Path Distance generation
+#'@title Generate a stack of path distance raster objects
 #'@author Joseph Stachelek
 #'@param spdf SpatialPointsDataFrame object
 #'@param costras RasterLayer cost raster
@@ -10,15 +10,27 @@
 #'@import raster
 #'@import gdistance
 #'@export
+#'@examples
+#'spdf<-data.frame(rnorm(2))
+#'xy<-data.frame(x=c(4,2),y=c(8,4))
+#'coordinates(spdf)<-xy
+#'
+#'m<-matrix(NA,10,10)
+#'costras<-raster(m,xmn=0,xmx=ncol(m),ymn=0,ymx=nrow(m))
+#'costras[]<-runif(ncell(costras),min=1,max=10)
+#'#introduce spatial gradient
+#'for(i in 1:nrow(costras)){
+#'costras[i,]<-costras[i,]+i
+#'costras[,i]<-costras[,i]+i
+#'}
+#'
+#'rstack<-pathdistGen(spdf,costras,100)
 
 
-#Author: Joseph Stachelek
-#This function generates path distances from each georeferenced point in a spdf
 
 'pathdistGen'<-function(spdf,costras,range,step=16,yearmon="default"){
   
-  #dir.create(file.path(getwd(),"DF_Surfaces"),showWarnings=F)
-  #dir.create(file.path(getwd(),"DF_Surfaces/",yearmon),showWarnings=F)
+
   ipdw.range<-range/res(costras)[1]/2 #this is a per cell distance
   
   #start interpolation#####
@@ -28,6 +40,9 @@
   coord<-spdf[i,]
   A<-accCost(trans,coord)
   dist<-hist(A,plot=F)$breaks[2]
+  if(dist<ipdw.range){
+    dist=ipdw.range    
+  }
   
     for(i in 1:nrow(spdf)){
       coord<-spdf[i,]

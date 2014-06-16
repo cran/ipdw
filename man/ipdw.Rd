@@ -35,6 +35,10 @@ RasterStack
 \description{
 Inverse Path Distance Weighting
 }
+\details{
+This is a high level function that interpolates a
+SpatialPointsDataFrame object in a single pass.
+}
 \examples{
 #see vignette
 }

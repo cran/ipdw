@@ -10,6 +10,7 @@
 #'@param removefile logical. Remove files after processing?
 #'@param step numeric. Number of sub loops to manage memory during raster processing.
 #'@return RasterStack
+#'@details This is a high level function that interpolates a SpatialPointsDataFrame object in a single pass. 
 #'@import raster
 #'@import gdistance
 #'@export

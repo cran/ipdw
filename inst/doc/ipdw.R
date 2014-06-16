@@ -34,7 +34,7 @@ pols<-SpatialPolygons(list(pols1,pols2,pols3,pols4,pols5,pols6,
 ###################################################
 ### code chunk number 3: ipdw-2
 ###################################################
-costras<-costrasterGen(kattegat$coords,pols,katproj)
+costras<-costrasterGen(kattegat$coords,pols,extent="pnts",katproj)
 #insert contiguous barrier
 costras[160:170,1:80]<-10000
 
