@@ -35,42 +35,42 @@
 'ipdwInterp'<-function(spdf,rstack,paramlist,overlapped=FALSE,yearmon="default",removefile=TRUE){
   
   for(k in 1:length(paramlist)){
-    
+    #k<-1
     tr.names<-names(spdf)
     param.ind<-which(tr.names==paramlist[k])
     
     #exclude NA values for param from spdf and rstack.sum
     param.na2<-which(is.na(spdf@data[,param.ind]))
+    
     if(length(param.na2)>=1){
       param.na<-as.numeric(row.names(spdf[which(is.na(spdf@data[,param.ind])),]))
       spdf<-spdf[-which(is.na(spdf@data[,param.ind])),]  
-      rstack<-dropLayer(rstack,param.na)
+      rstack<-raster::dropLayer(rstack,param.na2)
       }    
     
+    #print(identical(dim(rstack)[3],nrow(spdf)))
      
     #raster sum
     #rstack.sum<-sum(rstack,na.rm=TRUE) #need to set na.rm = TRUE if points are on land
     if(overlapped==TRUE){
-      
-      rstack.sum<-sum(rstack,na.rm=TRUE) 
-      rstack.sum<-reclassify(rstack.sum,cbind(0,NA))
+      rstack.sum<-raster::calc(rstack,fun=function(x){sum(x,na.rm=TRUE)})
+      rstack.sum<-raster::reclassify(rstack.sum,cbind(0,NA))
       
     }else{
-    
-    rstack.sum<-sum(rstack,na.rm=FALSE) 
-    rstack.sum<-reclassify(rstack.sum,cbind(0,NA))
+      rstack.sum<-raster::calc(rstack,fun=function(x){sum(x,na.rm = TRUE)}) 
+      rstack.sum<-raster::reclassify(rstack.sum,cbind(0,NA))
     }
     
     #calculate the weight of the individual rasters 
     
-    i=1
+    
     for(i in 1:dim(rstack)[3])  {
       ras.weight<-rstack[[i]]/rstack.sum
       param.value<-data.frame(spdf[i,paramlist[k]])
       param.value2<-as.vector(unlist(param.value[1]))
       ras.mult<-ras.weight*param.value2
       
-      rf<-writeRaster(ras.mult,filename=file.path(tempdir(),paste(paramlist[k],"A5ras",i,".grd",sep="")),overwrite=T)
+      rf<-raster::writeRaster(ras.mult,filename=file.path(tempdir(),paste(paramlist[k],"A5ras",i,".grd",sep="")),overwrite=T)
       #rf<-writeRaster(ras.mult,filename=paste("DF_Surfaces/",yearmon,"/",paramlist[k],"A5ras",i,".grd",sep=""),overwrite=T)
     }
     
@@ -81,19 +81,19 @@
     raster_data<-raster_data[order(fileNum)]
     
     #sum rasters to get final surface
-    rstack.mult<-stack(raster_data)
+    rstack.mult<-raster::stack(raster_data)
     
     if(overlapped==TRUE){
-        finalraster<-sum(rstack.mult,na.rm=T)
-        finalraster<-reclassify(finalraster,cbind(0,NA))
+        finalraster<-raster::calc(rstack.mult,fun=function(x){sum(x,na.rm=TRUE)})
+        finalraster<-raster::reclassify(finalraster,cbind(0,NA))
     }else{
-      finalraster<-sum(rstack.mult,na.rm=F) #this is the correct on for kattegat
+        finalraster<-raster::calc(rstack.mult,fun=function(x){sum(x,na.rm=TRUE)}) #this is the correct for kattegat example
     }
           
     #finalraster<-sum(rstack.mult,na.rm=T) #this is the correct one for dflow
      
-    r <- rasterize(spdf, rstack[[1]], paramlist[k])
-    finalraster<-cover(r,finalraster)
+    r <- raster::rasterize(spdf, rstack[[1]], paramlist[k])
+    finalraster<-raster::cover(r,finalraster)
     
     file.remove(raster_data_full)
     return(finalraster)
@@ -102,7 +102,7 @@
 
 if(removefile==TRUE){
   file.remove(list.files(path=file.path(tempdir()),pattern=paste(yearmon,"A4ras*",sep="")))
-    file.remove(list.files(path=file.path(tempdir()),pattern=paste(paramlist[k],"A5ras*",sep=""),full.names=T))
+  file.remove(list.files(path=file.path(tempdir()),pattern=paste(paramlist[k],"A5ras*",sep=""),full.names=T))
   #file.remove(raster_data_full)
 }
 }

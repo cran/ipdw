@@ -19,6 +19,7 @@
 #'Srs2<-Polygons(list(Sr2), "s2")
 #'pols<-SpatialPolygons(list(Srs1,Srs2), 1:2)
 #'
+#'
 #'#using a matrix object
 #'xymat<-matrix(3,3,nrow=1,ncol=2)
 #'costras<-costrasterGen(xymat,pols,projstr=NULL)
@@ -35,16 +36,16 @@ if(class(xymat)=="SpatialPointsDataFrame"|class(xymat)=="SpatialPoints"){
 }
 
 #add check to see if projstr and projection(pols) match
-if(!identical(projstr,projection(pols))){
-  message("The projection of polygons does not match projstr, see rgdal::spTransform")
+if(!identical(projstr,projection(pols))&&class(xymat)!="matrix"){
+  message("Warning, the projection of polygons does not match projstr. See rgdal::spTransform")
 }
 
 #define spatial domain based on pnts or polys
 if(extent=="polys"){
-  xmn<-min(bbox(pols)[1,])
-  xmx<-max(bbox(pols)[1,])
-  ymn<-min(bbox(pols)[2,])
-  ymx<-max(bbox(pols)[2,])
+  xmn<-min(sp::bbox(pols)[1,])
+  xmx<-max(sp::bbox(pols)[1,])
+  ymn<-min(sp::bbox(pols)[2,])
+  ymx<-max(sp::bbox(pols)[2,])
 }
 
 if(extent=="points"|extent=="pnts"){
@@ -58,12 +59,12 @@ nrow<-ymx-ymn
 ncol<-xmx-xmn
   
 #generate cost raster####
-  r<-raster(nrow=nrow,ncol=ncol,crs=projstr,xmn=xmn,xmx=xmx,ymn=ymn,ymx=ymx)
+  r<-raster::raster(nrow=nrow,ncol=ncol,crs=projstr,xmn=xmn,xmx=xmx,ymn=ymn,ymx=ymx)
   costras<-rasterize(pols,r,silent=TRUE)
   m <- c(0, +Inf, 10000)
   rclmat <- matrix(m, ncol=3, byrow=TRUE)
-  costras2<-reclassify(costras,rclmat)
-  costras3<-reclassify(costras2,cbind(NA,1))
+  costras2<-raster::reclassify(costras,rclmat)
+  costras3<-raster::reclassify(costras2,cbind(NA,1))
   
   return(costras3)  
 }
