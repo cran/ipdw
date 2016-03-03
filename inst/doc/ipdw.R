@@ -37,7 +37,7 @@ pols<-SpatialPolygons(list(pols1,pols2,pols3,pols4,pols5,pols6,
 projection(pols)<-katproj
 costras<-costrasterGen(kattegat$coords,pols,extent="pnts",katproj)
 #insert contiguous barrier
-costras[160:170,1:80]<-10000
+costras[160:170,1:80] <- 10000
 
 
 ###################################################
@@ -101,14 +101,15 @@ points(validate,col="red")
 ###################################################
 ### code chunk number 7: ipdw-5
 ###################################################
-paramlist<-c("data")
-final.ipdw<-ipdw(training,costras,range=mean.neighdist*10,paramlist)
+paramlist <- c("data")
+final.ipdw <- ipdw(training, costras, range = mean.neighdist * 10, paramlist,
+									 overlapped = TRUE)
 
 
 ###################################################
 ### code chunk number 8: figure1
 ###################################################
-plot(final.ipdw,main="Kattegat salinity (ppt)")
+plot(final.ipdw, main = "Kattegat salinity (ppt)")
 
 
 ###################################################
