@@ -29,10 +29,12 @@
 #'final.raster <- ipdwInterp(spdf, rstack, paramlist = c("rnorm.2."), overlapped = TRUE)
 #'plot(final.raster)
 
-'ipdwInterp' <- function(spdf, rstack, paramlist, overlapped = FALSE, yearmon = "default", removefile = TRUE){
+'ipdwInterp' <- function(spdf, rstack, paramlist, overlapped = FALSE,
+												 yearmon = "default", removefile = TRUE){
   
-  for(k in 1:length(paramlist)){
-  	points_layers <- rm_na_pointslayers(param_name = paramlist[k], spdf = spdf, rstack = rstack)
+	for(k in seq_len(length(paramlist))){
+  	points_layers <- rm_na_pointslayers(param_name = paramlist[k],
+  																			spdf = spdf, rstack = rstack)
   	spdf <- points_layers$spdf
   	rstack <- points_layers$rstack
   	
@@ -47,17 +49,24 @@
       param.value2 <- as.vector(unlist(param.value[1]))
       ras.mult <- ras.weight * param.value2
       
-      rf <- raster::writeRaster(ras.mult, filename = file.path(tempdir(), paste(paramlist[k], "A5ras", i, ".grd", sep = "")), overwrite = T)
+      rf <- raster::writeRaster(ras.mult, 
+      			filename = file.path(tempdir(), paste(paramlist[k],
+      			"A5ras", i, ".grd", sep = "")), overwrite = TRUE)
     }
     
-    raster_data_full <- list.files(path = file.path(tempdir()), pattern = paste(paramlist[k], "A5ras*", sep = ""), full.names = T)
-    raster_data <- raster_data_full[grep(".grd", raster_data_full, fixed = T)]
-    as.numeric(gsub('.*A5ras([0123456789]*)\\.grd$', '\\1', raster_data)) -> fileNum
+    raster_data_full <- list.files(path = file.path(tempdir()),
+    										pattern = paste(paramlist[k], "A5ras*", sep = ""),
+    										full.names = TRUE)
+    raster_data <- raster_data_full[grep(".grd", raster_data_full,
+    							 fixed = TRUE)]
+    as.numeric(gsub('.*A5ras([0123456789]*)\\.grd$', '\\1',
+    								raster_data)) -> fileNum
     raster_data <- raster_data[order(fileNum)]
     
     #sum rasters to get final surface
     rstack.mult <- raster::stack(raster_data)
-    finalraster <- raster::calc(rstack.mult, fun = function(x){sum(x, na.rm = TRUE)})
+    finalraster <- raster::calc(rstack.mult, fun = function(x){sum(x,
+    							 na.rm = TRUE)})
     
     if(overlapped == TRUE){
     	finalraster <- raster::reclassify(finalraster, cbind(0, NA))
@@ -72,8 +81,10 @@
 #optional removal of path distances
 
   if(removefile == TRUE){
-    file.remove(list.files(path = file.path(tempdir()), pattern = paste(yearmon, "A4ras*", sep = "")))
-    file.remove(list.files(path = file.path(tempdir()), pattern = paste(paramlist[k], "A5ras*", sep = ""), full.names = T))
+    file.remove(list.files(path = file.path(tempdir()),
+    	pattern = paste(yearmon, "A4ras*", sep = "")))
+    file.remove(list.files(path = file.path(tempdir()),
+    	pattern = paste(paramlist[k], "A5ras*", sep = ""), full.names = TRUE))
   }
 }
 

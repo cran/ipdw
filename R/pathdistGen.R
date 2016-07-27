@@ -28,7 +28,8 @@
 #'
 #'rstack <- pathdistGen(spdf, costras, 100)
 
-'pathdistGen' <- function(spdf, costras, range, yearmon = "default", progressbar = TRUE){
+'pathdistGen' <- function(spdf, costras, range, yearmon = "default",
+								 progressbar = TRUE){
   
   if(class(spdf) != "SpatialPointsDataFrame"){
     stop("spdf object must be of class SpatialPointsDataFrame")
@@ -38,42 +39,52 @@
   
   #start interpolation
   #calculate conductances hence 1/max(x)
-  trans <- gdistance::transition(costras, function(x) 1 / max(x), directions = 16)
+  trans <- gdistance::transition(costras, function(x) 1 / max(x),
+  				 directions = 16)
   i <- 1
   coord <- spdf[i,]
   costsurf <- gdistance::accCost(trans, coord)
   
-  ipdw_dist <- hist(costsurf, plot = F)$breaks[2]
+  ipdw_dist <- hist(costsurf, plot = FALSE)$breaks[2]
   if(ipdw_dist < ipdw_range){
     ipdw_dist <- ipdw_range    
   }
   
-  if(progressbar == TRUE){pb <- utils::txtProgressBar(max = nrow(spdf), style = 3)}
-  
-    for(i in 1:nrow(spdf)){
+  if(progressbar == TRUE){pb <- utils::txtProgressBar(max = nrow(spdf),
+  															style = 3)}
+ 
+    for(i in seq_len(nrow(spdf))){
       coord <- spdf[i,]
       costsurf <- gdistance::accCost(trans, coord)
-      costsurf_reclass <- raster::reclassify(costsurf, c(ipdw_dist, +Inf, NA, ipdw_range, ipdw_dist, ipdw_range)) #raster cells are 1 map unit
+      costsurf_reclass <- raster::reclassify(costsurf, c(ipdw_dist, +Inf, NA,
+      										ipdw_range, ipdw_dist, ipdw_range)) 
+      										#raster cells are 1 map unit
       costsurf_scaled <- ((ipdw_range/costsurf_reclass)^2)
-      costsurf_scaled_reclass <- raster::reclassify(costsurf_scaled, c(-Inf, 1, 0))
+      costsurf_scaled_reclass <- raster::reclassify(costsurf_scaled,
+      													 c(-Inf, 1, 0))
       
       #check output with - zoom(A4,breaks=seq(from=0,to=5,by=1),col=rainbow(5))
       #showTmpFiles()
       
-      raster::writeRaster(costsurf_scaled_reclass, filename = file.path(tempdir(), paste(yearmon, "A4ras", i, ".grd", sep = "")), overwrite = T, NAflag = -99999)
+      raster::writeRaster(costsurf_scaled_reclass,
+      filename = file.path(tempdir(), paste(yearmon, "A4ras", i,
+      ".grd", sep = "")), overwrite = TRUE, NAflag = -99999)
       if(progressbar == TRUE){setTxtProgressBar(pb, i)}      
     }
   if(progressbar == TRUE){close(pb)}
-     
-  
+    
   #create raster stack
-  raster_flist <- list.files(path = file.path(tempdir()), pattern = paste(yearmon, "A4ras*", sep = ""), full.names = T)
-  raster_flist <- raster_flist[grep(".grd", raster_flist, fixed = T)]
-  as.numeric(gsub('.*A4ras([0123456789]*)\\.grd$', '\\1', raster_flist)) -> fileNum
+  raster_flist <- list.files(path = file.path(tempdir()),
+  								pattern = paste(yearmon, "A4ras*", sep = ""),
+  								full.names = TRUE)
+  raster_flist <- raster_flist[grep(".grd", raster_flist, fixed = TRUE)]
+  as.numeric(gsub('.*A4ras([0123456789]*)\\.grd$',
+  	'\\1', raster_flist)) -> fileNum
   raster_flist <- raster_flist[order(fileNum)]
   rstack <- raster::stack(raster_flist)
   rstack <- raster::reclassify(rstack, cbind(-99999, NA))
-  file.remove(list.files(path = file.path(tempdir()), pattern = paste(yearmon, "A4ras*", sep = ""), full.names = T))
+  file.remove(list.files(path = file.path(tempdir()),
+  	pattern = paste(yearmon, "A4ras*", sep = ""), full.names = TRUE))
   
   return(rstack)
 }

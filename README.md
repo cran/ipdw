@@ -1,6 +1,7 @@
 ipdw
 ======
 
+[![Project Status: Active - The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 ![ipdw Downloads](http://cranlogs.r-pkg.org/badges/ipdw)
 [![Build status](https://ci.appveyor.com/api/projects/status/5vb8krkx50r1qhbp?svg=true)](https://ci.appveyor.com/project/jsta/ipdw)
 
@@ -16,7 +17,7 @@ The ipdw package was developed with coastal marine applications in mind where pa
   ```
 
 ##Examples
-**see vignette**
+**see** [vignette](https://cdn.rawgit.com/jsta/ipdw/master/inst/doc/ipdw.pdf)
 
 ##References
 **Joseph Stachelek and Christopher J. Madden (2015)**. Application of Inverse Path Distance weighting for high density spatial mapping of coastal water quality patterns.
