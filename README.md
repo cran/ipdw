@@ -9,17 +9,23 @@ The `R` package [ipdw](http://jsta.github.io/public/stachmadden2015am.pdf)  prov
 
 The ipdw package was developed with coastal marine applications in mind where path distances (as the fish swims) rather than Euclidean (as the crow flies) distances more accurately represent spatial connectivity. Interpolation of sparse grids in coastal areas otherwise end up bleeding through land areas.
 
-##Installation
-  ```R
-  install.packages("ipdw")
-  install.packages('devtools')  # package devtools needed
-  devtools::install_github('jsta/ipdw')
-  ```
+## Installation
+### Stable version from CRAN
 
-##Examples
-**see** [vignette](https://cdn.rawgit.com/jsta/ipdw/master/inst/doc/ipdw.pdf)
+```{r}
+install.packages("ipdw")
+```
 
-##References
+### or development version from GitHub
+```r
+	install.packages('devtools')  # package devtools needed
+	devtools::install_github("jsta/ipdw")
+```
+
+## Examples
+**see** [vignette](https://jsta.github.com/ipdw/articles)
+
+## References
 **Joseph Stachelek and Christopher J. Madden (2015)**. Application of Inverse Path Distance weighting for high density spatial mapping of coastal water quality patterns.
 *International Journal of Geographical Information Science*
 [preprint](http://jsta.github.io/public/stachmadden2015am.pdf) | [journal](http://dx.doi.org/10.1080/13658816.2015.1018833)

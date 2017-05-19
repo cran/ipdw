@@ -4,13 +4,12 @@
 #'@author Joseph Stachelek
 #'@param spdf SpatialPointsDataFrame object
 #'@param rstack RasterStack of path distances
-#'@param paramlist chacter. String representing parameter names
+#'@param paramlist character. String representing parameter names
 #'@param overlapped logical. Default is FALSE, specify TRUE if some points lie on top of barriers
 #'@param yearmon character. String specifying the name of the spdf
 #'@param removefile logical. Remove files after processing?
 #'@return RasterLayer
-#'@import raster
-#'@import gdistance
+#'@importFrom raster calc reclassify writeRaster stack rasterize cover
 #'@export
 #'@examples
 #'spdf <- data.frame(rnorm(2))
@@ -89,8 +88,8 @@
 }
 
 #'@name rm_na_pointslayers
-#'@title Remove NA SpatialPointsDataFrame features and drop correspoding raster stack layers
-#'@description Remove NA SpatialPointsDataFrame features and drop correspoding raster stack layers
+#'@title Remove NA SpatialPointsDataFrame features and drop corresponding raster stack layers
+#'@description Remove NA SpatialPointsDataFrame features and drop corresponding raster stack layers
 #'@param param_name character name of data column
 #'@param spdf SpatialPointsDataFrame object
 #'@param rstack RasterStack or RasterBrick

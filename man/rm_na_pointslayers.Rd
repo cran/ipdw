@@ -2,7 +2,7 @@
 % Please edit documentation in R/ipdwInterp.R
 \name{rm_na_pointslayers}
 \alias{rm_na_pointslayers}
-\title{Remove NA SpatialPointsDataFrame features and drop correspoding raster stack layers}
+\title{Remove NA SpatialPointsDataFrame features and drop corresponding raster stack layers}
 \usage{
 rm_na_pointslayers(param_name, spdf, rstack)
 }
@@ -14,6 +14,5 @@ rm_na_pointslayers(param_name, spdf, rstack)
 \item{rstack}{RasterStack or RasterBrick}
 }
 \description{
-Remove NA SpatialPointsDataFrame features and drop correspoding raster stack layers
+Remove NA SpatialPointsDataFrame features and drop corresponding raster stack layers
 }
-
