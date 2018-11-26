@@ -4,7 +4,7 @@
 \alias{costrasterGen}
 \title{Generate a cost Raster}
 \usage{
-costrasterGen(xymat, pols, extent = "polys", projstr)
+costrasterGen(xymat, pols, extent = "polys", projstr, resolution = 1)
 }
 \arguments{
 \item{xymat}{Matrix of coordinates or a \code{SpatialPointsDataFrame} object}
@@ -14,6 +14,8 @@ costrasterGen(xymat, pols, extent = "polys", projstr)
 \item{extent}{Define extent based on extent of xymat/xyspdf (points) or pols (polys). Default is polys.}
 
 \item{projstr}{proj4 string defining the inherent projection}
+
+\item{resolution}{Numeric defaults to 1. See \code{\link[raster]{raster}}.}
 }
 \value{
 RasterLayer
