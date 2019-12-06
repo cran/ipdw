@@ -4,9 +4,18 @@
 \alias{ipdw}
 \title{Inverse Path Distance Weighting}
 \usage{
-ipdw(spdf, costras, range, paramlist, overlapped = FALSE,
-  yearmon = "default", removefile = TRUE, step = 16,
-  dist_power = 1)
+ipdw(
+  spdf,
+  costras,
+  range,
+  paramlist,
+  overlapped = FALSE,
+  yearmon = "default",
+  removefile = TRUE,
+  step = 16,
+  dist_power = 1,
+  trim_rstack = FALSE
+)
 }
 \arguments{
 \item{spdf}{SpatialPointsDataFrame object}
@@ -25,7 +34,9 @@ ipdw(spdf, costras, range, paramlist, overlapped = FALSE,
 
 \item{step}{numeric. Number of sub loops to manage memory during raster processing.}
 
-\item{dist_power}{numeric. Distance decay power (p).}
+\item{dist_power}{numeric. Distance decay power (p)}
+
+\item{trim_rstack}{logical. Trim the raster output by the convex hill of spdf}
 }
 \value{
 RasterLayer

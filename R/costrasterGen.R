@@ -8,7 +8,7 @@
 #'@param pols SpatialPolygons object
 #'@param extent Define extent based on extent of xymat/xyspdf (points) or pols (polys). Default is polys.
 #'@param resolution Numeric defaults to 1. See \code{\link[raster]{raster}}.
-#'@param projstr proj4 string defining the inherent projection
+#'@param projstr proj4 string defining the output projection. An error will be thrown if projstr does not match the projection of the extent target. Pass NULL for non-geographic grids.
 #'
 #'@details Ensure that the projection of the xymat coordinates and pols match. This can be accomplished by running the \code{projection} command on both inputs. If they do not match use the \code{spTransform} command.
 #'@seealso \code{\link[rgdal]{spTransform-methods}}, \code{\link[raster]{rasterize}}
@@ -17,6 +17,7 @@
 #'
 #'@importFrom raster raster rasterize reclassify 
 #'@importFrom sp proj4string coordinates bbox 
+#'@importFrom methods is
 #'@export
 #'
 #'@examples \dontrun{
@@ -45,19 +46,25 @@
 
 costrasterGen <- function(xymat, pols, extent = "polys", projstr, 
 														resolution = 1){
-  if(class(xymat) == "SpatialPointsDataFrame" |
-  	 class(xymat) == "SpatialPoints"){
+  if(is(xymat, "SpatialPointsDataFrame") |
+  	 is(xymat, "SpatialPoints")){
+  	
+  	if(!identical(projstr, sp::proj4string(xymat))){
+  		message("Warning, the projection of xymat does not
+    			match projstr. See rgdal::spTransform")
+  	}
+  	
     xymat <- sp::coordinates(xymat)
   }
   
-  #add check to see if projstr and projection(pols) match
+	# add check to see if projstr and projection(pols) match
   if(!identical(projstr, sp::proj4string(pols))){
     message("Warning, the projection of polygons does not
     				match projstr. See rgdal::spTransform")
   }
   
-  #define spatial domain based on pnts or polys
-  if(extent == "polys"){
+  # define spatial domain based on pnts or polys
+  if(extent == "polys" | extent == "pols"){
     xmn <- min(sp::bbox(pols)[1,])
     xmx <- max(sp::bbox(pols)[1,])
     ymn <- min(sp::bbox(pols)[2,])
@@ -74,13 +81,15 @@ costrasterGen <- function(xymat, pols, extent = "polys", projstr,
   nrow <- ymx - ymn
   ncol <- xmx - xmn
   
-  #generate cost raster
-  r <- raster::raster(nrow = nrow, ncol = ncol, crs = projstr, xmn = xmn,
-  										xmx = xmx, ymn = ymn, ymx = ymx)
+  # generate cost raster
   if(resolution != 1){
   	r <- raster::raster(nrow = nrow, ncol = ncol, crs = projstr, xmn = xmn,
   											xmx = xmx, ymn = ymn, ymx = ymx, resolution = resolution)
+  }else{
+  	r <- raster::raster(nrow = nrow, ncol = ncol, crs = projstr, xmn = xmn,
+  											xmx = xmx, ymn = ymn, ymx = ymx)
   }
+  
   costras <- raster::rasterize(pols, r, silent = TRUE)
   m <- c(0, +Inf, 10000)
   rclmat <- matrix(m, ncol = 3, byrow = TRUE)
