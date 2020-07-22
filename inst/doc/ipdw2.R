@@ -1,5 +1,6 @@
 ## ----setup, include=FALSE-----------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE, fig.pos = 'center', fig.align = 'center')
+#, fig.path = "images/"
 
 ## ----load_package, message=FALSE, warning=FALSE-------------------------------
 library(ipdw)
@@ -74,30 +75,36 @@ final.ipdw <- ipdw(training, costras, range = mean.neighdist * 10, paramlist,
 ## ----plot_interpolation, fig.cap = "<strong>Figure 2: Interpolated salinity surface by IPDW.</strong>", fig.height = 6, fig.width = 5----
 plot(final.ipdw, main = "Kattegat salinity (ppt)")
 
-## ----create_idw---------------------------------------------------------------
-idw.grid <- rasterToPoints(costras, fun = function(x){ x < 10000}, spatial = TRUE)
-gridded(idw.grid) <- TRUE
-kat.idw <- gstat::idw(salinity~1, training, idw.grid, maxdist = mean.neighdist*10,
-											debug.level = 0)
-final.idw <- raster(kat.idw)
+## ----create_idw, eval=FALSE---------------------------------------------------
+#  idw.grid <- rasterToPoints(costras, fun = function(x){ x < 10000}, spatial = TRUE)
+#  gridded(idw.grid) <- TRUE
+#  kat.idw <- gstat::idw(salinity~1, training, idw.grid, maxdist = mean.neighdist*10,
+#  											debug.level = 0)
+#  final.idw <- raster(kat.idw)
 
-## ----plot_ipdw_vs_idw, fig.cap = "<strong>Figure 3: Comparison between IPDW and IDW outputs. Note the overestimation of salinity on the upstream (south) side of the contiguous barrier.</strong>", fig.width = 6, fig.height = 4----
-par(mfrow = c(1, 3), mar = c(5.1, 4.1, 4.1, 5.1))
-plot(final.ipdw, main = "IPDW")
-plot(final.idw, main = "IDW")
-plot(final.idw-final.ipdw,  main = "IDW versus IPDW")
+## ----plot_ipdw_vs_idw, fig.cap = "<strong>Figure 3: Comparison between IPDW and IDW outputs. Note the overestimation of salinity on the upstream (south) side of the contiguous barrier.</strong>", fig.width = 6, fig.height = 4, eval=FALSE----
+#  par(mfrow = c(1, 3), mar = c(5.1, 4.1, 4.1, 5.1))
+#  plot(final.ipdw, main = "IPDW")
+#  plot(final.idw, main = "IDW")
+#  plot(final.idw-final.ipdw,  main = "IDW versus IPDW")
 
-## ----generate_validation------------------------------------------------------
-measured.spdf              <- data.frame(validate$salinity)
-coordinates(measured.spdf) <- coordinates(validate)
+## ----plot_ipdw_vs_idw_img, echo=FALSE-----------------------------------------
+knitr::include_graphics("images/plot_ipdw_vs_idw-1.png")
 
-valid.ipdw <- errorGen(final.ipdw, measured.spdf, measured.spdf@data)
-valid.idw  <- errorGen(final.idw, measured.spdf, measured.spdf@data)
+## ----generate_validation, eval=FALSE------------------------------------------
+#  measured.spdf              <- data.frame(validate$salinity)
+#  coordinates(measured.spdf) <- coordinates(validate)
+#  
+#  valid.ipdw <- errorGen(final.ipdw, measured.spdf, measured.spdf@data)
+#  valid.idw  <- errorGen(final.idw, measured.spdf, measured.spdf@data)
 
-## ----plot_validation, fig.cap = "<strong>Figure 4: Comparison between IPDW and IDW interpolation error.  A one-to-one line and best-fit line are shown in black and red respectively.</strong>", fig.width = 8, fig.height = 5----
-par(mfrow = c(1, 2))
-valid.ipdw <- errorGen(final.ipdw, measured.spdf, measured.spdf@data, 
-											 plot = TRUE, title = "IPDW")
-valid.idw <- errorGen(final.idw, measured.spdf, measured.spdf@data, 
-											plot = TRUE, title = "IDW")
+## ----plot_validation, fig.cap = "<strong>Figure 4: Comparison between IPDW and IDW interpolation error.  A one-to-one line and best-fit line are shown in black and red respectively.</strong>", fig.width = 8, fig.height = 5, eval=FALSE----
+#  par(mfrow = c(1, 2))
+#  valid.ipdw <- errorGen(final.ipdw, measured.spdf, measured.spdf@data,
+#  											 plot = TRUE, title = "IPDW")
+#  valid.idw <- errorGen(final.idw, measured.spdf, measured.spdf@data,
+#  											plot = TRUE, title = "IDW")
+
+## ----plot_validation_img, echo=FALSE------------------------------------------
+knitr::include_graphics("images/plot_validation-1.png")
 
