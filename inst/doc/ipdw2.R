@@ -6,9 +6,9 @@ knitr::opts_chunk$set(echo = TRUE, fig.pos = "center", fig.align = "center")
 library(ipdw)
 
 ## ----load_data, message = FALSE, results='hide'-------------------------------
-library(rgdal)
-pols <- readOGR(system.file("extdata/kattegat_coast.gpkg", package = "ipdw"))
-pnts <- readOGR(system.file("extdata/kattegat_pnts.gpkg", package = "ipdw"))
+library(sf)
+pols <- st_read(system.file("extdata/kattegat_coast.gpkg", package = "ipdw"))
+pnts <- st_read(system.file("extdata/kattegat_pnts.gpkg", package = "ipdw"))
 
 ## ----create_costraster--------------------------------------------------------
 costras <- costrasterGen(pnts, pols, extent = "pnts",
@@ -20,8 +20,9 @@ costras[160:170, 1:80] <- 10000
 # find average nearest neighbor
 library(spatstat)
 
-W              <- owin(range(coordinates(pnts)[, 1]), range(coordinates(pnts)[, 2]))
-kat.pp         <- ppp(coordinates(pnts)[, 1], coordinates(pnts)[, 2], window = W)
+W              <- owin(range(c(st_bbox(pnts)["xmin"], st_bbox(pnts)["xmax"])),
+                       range(c(st_bbox(pnts)["ymin"], st_bbox(pnts)["ymax"])))
+kat.pp         <- ppp(st_coordinates(pnts)[,1], st_coordinates(pnts)[,2], window = W)
 mean.neighdist <- mean(nndist(kat.pp))
 
 # grid building
@@ -32,10 +33,7 @@ gridpol        <- rasterToPolygons(gridras)
 gridpol$value  <- row.names(gridpol)
 
 # spatial join
-fulldataset.over    <- over(pnts, gridpol)
-fulldataset.over    <- cbind(data.frame(fulldataset.over),
-  setNames(data.frame(pnts),
-    c("id", "salinity", "x.utm", "y.utm", "optional")))
+fulldataset.over <- sf::st_join(pnts, st_as_sf(gridpol))
 
 # grid selection
 set.seed(2)
@@ -45,8 +43,7 @@ for (i in seq_along(gridlev)) {
   selectnum <- gdata::resample(seq_len(nrow(activesub)), 1)
   if (i == 1) {
     training <- activesub[selectnum, ]
-  }
-  else {
+  } else {
     training <- rbind(training, activesub[selectnum, ])
   }
 }
@@ -54,18 +51,12 @@ for (i in seq_along(gridlev)) {
 ## ----split_training_validation------------------------------------------------
 validate             <- fulldataset.over[!(row.names(fulldataset.over) %in%
   row.names(training)), ]
-xy                   <- cbind(training$x.utm, training$y.utm)
-training             <- SpatialPointsDataFrame(xy, training)
-xy                   <- cbind(validate$x.utm, validate$y.utm)
-validate             <- SpatialPointsDataFrame(xy, validate)
-projection(training) <- projection(pnts)
-projection(validate) <- projection(pnts)
 
 ## ----plot_cost_raster, fig.cap = "<strong>Figure 1: Cost raster representing the high cost of travel through land areas. Training and validation points are shown in black and red respectively.</strong>", fig.height = 6, fig.width = 5----
 
 plot(costras)
-points(training)
-points(validate, col = "red")
+plot(st_geometry(training), add = TRUE)
+plot(st_geometry(validate), col = "red", add = TRUE)
 
 ## ----interpolate, cache = FALSE, message = FALSE, results = 'hide'------------
 paramlist <- c("salinity")
@@ -78,11 +69,12 @@ plot(final.ipdw, main = "Kattegat salinity (ppt)")
 ## ----create_idw, eval=FALSE---------------------------------------------------
 #  idw.grid <- rasterToPoints(costras, fun = function(x) {
 #    x < 10000
-#  }, spatial = TRUE)
-#  gridded(idw.grid) <- TRUE
-#  kat.idw <- gstat::idw(salinity ~ 1, training, idw.grid, maxdist = mean.neighdist * 10,
-#    debug.level = 0)
-#  final.idw <- raster(kat.idw)
+#  }, spatial = FALSE)
+#  idw.grid <- st_as_sf(data.frame(idw.grid), coords = c("x", "y"), crs = st_crs(training))
+#  kat.idw  <- gstat::idw(salinity ~ 1, training, idw.grid, maxdist = mean.neighdist * 10,
+#    debug.level = 0)["var1.pred"]
+#  final.idw <- rasterize(as_Spatial(kat.idw), final.ipdw)
+#  final.idw <- raster::subset(final.idw, "var1.pred")
 
 ## ----plot_ipdw_vs_idw, fig.cap = "<strong>Figure 3: Comparison between IPDW and IDW outputs. Note the overestimation of salinity on the upstream (south) side of the contiguous barrier.</strong>", fig.width = 6, fig.height = 4, eval=FALSE----
 #  par(mfrow = c(1, 3), mar = c(5.1, 4.1, 4.1, 5.1))
@@ -95,16 +87,15 @@ knitr::include_graphics("images/plot_ipdw_vs_idw-1.png")
 
 ## ----generate_validation, eval=FALSE------------------------------------------
 #  measured.spdf              <- data.frame(validate$salinity)
-#  coordinates(measured.spdf) <- coordinates(validate)
 #  
-#  valid.ipdw <- errorGen(final.ipdw, measured.spdf, measured.spdf@data)
-#  valid.idw  <- errorGen(final.idw, measured.spdf, measured.spdf@data)
+#  valid.ipdw <- errorGen(final.ipdw, validate["salinity"], measured.spdf)
+#  valid.idw  <- errorGen(final.idw, validate["salinity"], measured.spdf)
 
 ## ----plot_validation, fig.cap = "<strong>Figure 4: Comparison between IPDW and IDW interpolation error.  A one-to-one line and best-fit line are shown in black and red respectively.</strong>", fig.width = 8, fig.height = 5, eval=FALSE----
 #  par(mfrow = c(1, 2))
-#  valid.ipdw <- errorGen(final.ipdw, measured.spdf, measured.spdf@data,
+#  valid.ipdw <- errorGen(final.ipdw, validate["salinity"], measured.spdf,
 #    plot = TRUE, title = "IPDW")
-#  valid.idw <- errorGen(final.idw, measured.spdf, measured.spdf@data,
+#  valid.idw <- errorGen(final.idw, validate["salinity"], measured.spdf,
 #    plot = TRUE, title = "IDW")
 
 ## ----plot_validation_img, echo=FALSE------------------------------------------
