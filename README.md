@@ -6,7 +6,6 @@
 state and is being actively
 developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 ![ipdw Downloads](https://cranlogs.r-pkg.org/badges/ipdw)
-[![R-CMD-check](https://github.com/jsta/ipdw/actions/workflows/R-CMD-check.yml/badge.svg)](https://github.com/jsta/ipdw/actions/workflows/R-CMD-check.yml)
 
 The `R` package [ipdw](https://jsta.rbind.io/pdf/stachmadden2015am.pdf)
 provides the functionality to perform interpolation of georeferenced
@@ -35,16 +34,16 @@ through land areas.
 install.packages("ipdw")
 ```
 
-### or development version from GitHub
+### or development version from Codeberg
 
 ``` r
-install.packages("devtools")  # package devtools needed
-devtools::install_github("jsta/ipdw")
+# install.packages("pak")
+pak::pak("git::https://codeberg.org/jsta/ipdw.git")
 ```
 
 ## Examples
 
-**see** [vignette](http://jsta.github.io/ipdw/articles/)
+**see** [vignette](https://jsta.codeberg.page/ipdw/articles/)
 
 ## References
 

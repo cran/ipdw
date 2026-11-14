@@ -12,9 +12,11 @@
 #' @return RasterStack object of path distances
 #'
 #' @importFrom raster res reclassify writeRaster stack hist
+#' @importFrom terra rast rasterize classify
 #' @importFrom gdistance transition accCost
 #' @importFrom utils setTxtProgressBar
 #' @importFrom sf st_coordinates
+#' @importFrom methods as
 #' @export
 #'
 #' @examples
@@ -24,7 +26,7 @@
 #' sf_ob <- st_as_sf(cbind(sf_ob, xy), coords = c("x", "y"))
 #'
 #' m <- matrix(NA, 10, 10)
-#' costras <- raster(m, xmn = 0, xmx = ncol(m), ymn = 0, ymx = nrow(m))
+#' costras <- terra::rast(m)
 #' costras[] <- runif(ncell(costras), min = 1, max = 10)
 #' # introduce spatial gradient
 #' for (i in 1:nrow(costras)) {
@@ -40,22 +42,21 @@ pathdistGen <- function(sf_ob, costras, range, yearmon = "default",
     stop("sf_ob object must be of class sf")
   }
 
-  if (!identical(raster::projection(sf_ob), raster::projection(costras))) {
+  if (!identical(replace(as.character(terra::crs(sf_ob, proj=TRUE)), as.character(terra::crs(sf_ob, proj=TRUE))=="", NA), replace(as.character(terra::crs(costras, proj=TRUE)), as.character(terra::crs(costras, proj=TRUE))=="", NA))) {
     stop("Point data projection and cost raster projections do not match,
     		 see sf::st_transform")
   }
 
-  ipdw_range <- range / raster::res(costras)[1] / 2 # this is a per cell distance
+  ipdw_range <- range / terra::res(costras)[1] / 2 # this is a per cell distance
 
   # start interpolation
   # calculate conductances hence 1/max(x)
-  trans <- gdistance::transition(costras, function(x) 1 / max(x),
-    directions = 16)
+  trans <- gdistance::transition(as(costras, "Raster"), function(x) 1 / max(x), directions = 16)
   i <- 1
   coord <- sf_ob[i, ]
   costsurf <- gdistance::accCost(trans, t(matrix(st_coordinates(coord))))
 
-  ipdw_dist <- raster::hist(costsurf, plot = FALSE)$breaks[2]
+  ipdw_dist <- terra::hist(costsurf, plot = FALSE)$breaks[2]
   if (ipdw_dist < ipdw_range) {
     ipdw_dist <- ipdw_range
   }
@@ -67,20 +68,24 @@ pathdistGen <- function(sf_ob, costras, range, yearmon = "default",
 
   for (i in seq_len(nrow(sf_ob))) {
     coord <- sf_ob[i, ]
-    costsurf <- gdistance::accCost(trans, t(matrix(st_coordinates(coord))))
-    costsurf_reclass <- raster::reclassify(costsurf, c(ipdw_dist, +Inf, NA,
-      ipdw_range, ipdw_dist, ipdw_range))
+    coord_matrix <- t(matrix(st_coordinates(coord)))
+    costsurf <- gdistance::accCost(trans, coord_matrix)
+    costsurf_terra <- terra::rast(costsurf)
+    m <- c(ipdw_dist, +Inf, NA, ipdw_range, ipdw_dist, ipdw_range)
+    rclmat <- matrix(m, ncol=3, byrow=TRUE)
+    costsurf_reclass <- terra::classify(costsurf_terra, rclmat)
+
     # raster cells are 1 map unit
     costsurf_scaled <- ((ipdw_range / costsurf_reclass)^2)
-    costsurf_scaled_reclass <- raster::reclassify(costsurf_scaled,
-      c(-Inf, 1, 0))
+    m <- c(-Inf, 1, 0)
+    rclmat <- matrix(m, ncol=3, byrow=TRUE)
+    costsurf_scaled_reclass <- terra::classify(costsurf_scaled, rclmat)
+    all(is.na(costsurf_scaled_reclass[]))
 
     # check output with - zoom(A4,breaks=seq(from=0,to=5,by=1),col=rainbow(5))
     # showTmpFiles()
 
-    raster::writeRaster(costsurf_scaled_reclass,
-      filename = file.path(tempdir(), paste(yearmon, "A4ras", i,
-        ".grd", sep = "")), overwrite = TRUE, NAflag = -99999)
+    terra::writeRaster(costsurf_scaled_reclass, filename = file.path(tempdir(), paste(yearmon, "A4ras", i, ".grd", sep = "")), overwrite = TRUE, NAflag = -99999)
     if (progressbar == TRUE) {
       setTxtProgressBar(pb, i)
     }
@@ -90,23 +95,20 @@ pathdistGen <- function(sf_ob, costras, range, yearmon = "default",
   }
 
   # create raster stack
-  raster_flist <- list.files(path = file.path(tempdir()),
-    pattern = paste(yearmon, "A4ras*", sep = ""),
-    full.names = TRUE)
+  raster_flist <- list.files(path = file.path(tempdir()), pattern = paste(yearmon, "A4ras*", sep = ""), full.names = TRUE)
   raster_flist <- raster_flist[grep(".grd", raster_flist, fixed = TRUE)]
-  as.numeric(gsub(".*A4ras([0123456789]*)\\.grd$",
-    "\\1", raster_flist)) -> fileNum
+  raster_flist <- raster_flist[!grepl("xml", raster_flist)]
+  as.numeric(gsub(".*A4ras([0123456789]*)\\.grd$", "\\1", raster_flist)) -> fileNum
   raster_flist <- raster_flist[order(fileNum)]
-  rstack <- raster::stack(raster_flist)
-  rstack <- raster::reclassify(rstack, cbind(-99999, NA))
-  file.remove(list.files(path = file.path(tempdir()),
-    pattern = paste(yearmon, "A4ras*", sep = ""), full.names = TRUE))
+  raster_flist <- raster_flist[endsWith(raster_flist, "grd")]
+  rstack <- terra::rast(raster_flist)
+  rstack <- terra::classify(rstack, cbind(-99999, NA))
+  file.remove(list.files(path = file.path(tempdir()), pattern = paste(yearmon, "A4ras*", sep = ""), full.names = TRUE))
 
-  rstack <- new("pathDist", rstack,
-    range = range)
+  rstack <- new("pathDist", rstack, range = range)
 
   return(rstack)
 }
 
 pathDist   <- setClass("pathDist",
-  slots = c(range = "numeric"), contains = "RasterBrick")
+  slots = c(range = "numeric"), contains = "SpatRaster")

@@ -15,7 +15,7 @@ test_that("returns correct class and warn on bad projection", {
 
   xymat <- matrix(3, 3, nrow = 1, ncol = 2)
 
-  expect_is(costrasterGen(xymat, pols, projstr = latlonproj), "RasterLayer")
+  expect_is(costrasterGen(xymat, pols, projstr = latlonproj), "SpatRaster")
   expect_message(costrasterGen(xymat, pols, projstr = NULL),
     "Warning, the projection of polygons does not
     				match projstr. See sf::st_transform")
@@ -28,5 +28,5 @@ test_that("SpatialPoints objects are handled correctly", {
   pnts <- st_read(system.file("extdata/kattegat_pnts.gpkg", package = "ipdw"), quiet = TRUE)
   costras <- costrasterGen(pnts, pols, extent = "pnts",
     projstr = projection(pols))
-  expect_is(costras, "RasterLayer")
+  expect_is(costras, "SpatRaster")
 })

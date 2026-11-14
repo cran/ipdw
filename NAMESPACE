@@ -6,25 +6,39 @@ export(ipdw)
 export(ipdwInterp)
 export(pathdistGen)
 export(rm_na_pointslayers)
-importFrom(gdistance,accCost)
-importFrom(gdistance,transition)
-importFrom(methods,is)
-importFrom(methods,new)
-importFrom(methods,slot)
-importFrom(raster,calc)
-importFrom(raster,cover)
-importFrom(raster,hist)
-importFrom(raster,projection)
-importFrom(raster,raster)
-importFrom(raster,rasterize)
-importFrom(raster,reclassify)
-importFrom(raster,res)
-importFrom(raster,stack)
-importFrom(raster,writeRaster)
-importFrom(sf,st_as_sf)
-importFrom(sf,st_bbox)
-importFrom(sf,st_convex_hull)
-importFrom(sf,st_coordinates)
-importFrom(sf,st_crs)
-importFrom(sf,st_polygon)
+importFrom(gdistance,
+  accCost,
+  transition
+)
+importFrom(methods,
+  as,
+  is,
+  new,
+  slot
+)
+importFrom(raster,
+  calc,
+  cover,
+  extract,
+  hist,
+  projection,
+  rasterize,
+  reclassify,
+  res,
+  stack,
+  writeRaster
+)
+importFrom(sf,
+  st_as_sf,
+  st_bbox,
+  st_convex_hull,
+  st_coordinates,
+  st_crs,
+  st_polygon
+)
+importFrom(terra,
+  classify,
+  rast,
+  rasterize
+)
 importFrom(utils,setTxtProgressBar)

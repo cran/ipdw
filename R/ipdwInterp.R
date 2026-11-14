@@ -58,7 +58,6 @@ ipdwInterp <- function(sf_ob, rstack, paramlist, overlapped = FALSE,
           collapse = "', '"), "' does not exist in sf_ob object."))
   }
 
-
   range <- slot(rstack, "range")
 
   if (trim_rstack) {
@@ -72,10 +71,10 @@ ipdwInterp <- function(sf_ob, rstack, paramlist, overlapped = FALSE,
     rstack <- points_layers$rstack
 
     # if(overlapped == TRUE){ #need to set na.rm = TRUE if points are on land?
-    rstack.sum <- raster::calc(rstack, fun = function(x) {
+    rstack.sum <- terra::app(rstack, fun = function(x) {
       sum(x^dist_power, na.rm = TRUE)
     })
-    rstack.sum <- raster::reclassify(rstack.sum, cbind(0, NA))
+    rstack.sum <- terra::classify(rstack.sum, cbind(0, NA))
 
     # calculate the weight of the individual rasters
     for (i in 1:dim(rstack)[3]) {
@@ -85,7 +84,7 @@ ipdwInterp <- function(sf_ob, rstack, paramlist, overlapped = FALSE,
       param.value2 <- as.vector(unlist(param.value[1]))
       ras.mult     <- ras.weight * param.value2
 
-      rf <- raster::writeRaster(ras.mult,
+      rf <- terra::writeRaster(ras.mult,
         filename = file.path(tempdir(), paste(paramlist[k],
           "A5ras", i, ".grd", sep = "")), overwrite = TRUE)
     }
@@ -95,22 +94,24 @@ ipdwInterp <- function(sf_ob, rstack, paramlist, overlapped = FALSE,
       full.names = TRUE)
     raster_data <- raster_data_full[grep(".grd", raster_data_full,
       fixed = TRUE)]
+    raster_data <- raster_data[!grepl("xml", raster_data)]
     as.numeric(gsub(".*A5ras([0123456789]*)\\.grd$", "\\1",
       raster_data)) -> fileNum
     raster_data <- raster_data[order(fileNum)]
+    raster_data <- raster_data[endsWith(raster_data, "grd")]
 
     # sum rasters to get final surface
-    rstack.mult <- raster::stack(raster_data)
-    finalraster <- raster::calc(rstack.mult, fun = function(x) {
+    rstack.mult <- terra::rast(raster_data)
+    finalraster <- terra::app(rstack.mult, fun = function(x) {
       sum(x, na.rm = TRUE)
     })
 
     if (overlapped == TRUE) {
-      finalraster <- raster::reclassify(finalraster, cbind(0, NA))
+      finalraster <- terra::classify(finalraster, cbind(0, NA))
     }
 
-    r           <- raster::rasterize(sf_ob, rstack[[1]], paramlist[k])
-    finalraster <- raster::cover(r, finalraster)
+    r           <- terra::rasterize(sf_ob, rstack[[1]], paramlist[k])
+    finalraster <- terra::cover(r, finalraster)
     finalraster <- new("ipdwResult", finalraster,
       range = range,
       dist_power = dist_power)
@@ -150,4 +151,4 @@ rm_na_pointslayers <- function(param_name, sf_ob, rstack) {
 
 ipdwResult <- setClass("ipdwResult",
   slots = c(range = "numeric", dist_power = "numeric"),
-  contains = "RasterLayer")
+  contains = "SpatRaster")

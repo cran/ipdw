@@ -38,11 +38,12 @@ validation.data <- as.numeric(unlist(validation.data))
 xy <- data.frame(x = c(0:9), y = rep(1, 10))
 validation.sf_ob <- st_as_sf(cbind(validation.sf_ob, xy), coords = c("x", "y"))
 
-m <- matrix(NA, 1, 10)
-out.ras <- raster(m, xmn = 0, xmx = ncol(m), ymn = 0, ymx = nrow(m))
+m <- matrix(1, 1, 10)
+out.ras <- terra::rast(nrows = nrow(m), ncols = ncol(m), 
+xmin = 0, xmax = ncol(m), ymin = 0, ymax = nrow(m))
 out.ras[] <- validation.data + rnorm(ncell(out.ras), mean = 0.01, sd = 0.2)
 
-valid.stats <- errorGen(out.ras, validation.sf_ob, validation.data, plot = TRUE,
+valid.stats <- errorGen(as(out.ras, "Raster"), validation.sf_ob, validation.data, plot = TRUE,
   title = "Validation Plot")
 valid.stats
 }

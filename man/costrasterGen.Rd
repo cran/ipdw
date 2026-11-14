@@ -40,6 +40,7 @@ pols <- st_as_sf(st_sfc(Sr1, Sr2, Sr3, Sr4, Sr5,
 # using a matrix object
 xymat <- matrix(3, 3, nrow = 1, ncol = 2)
 costras <- costrasterGen(xymat, pols, projstr = NULL)
+print(costras)
 
 # plotting
 plot(costras)

@@ -1,4 +1,9 @@
-## ipdw 2.0.0
+## ipdw 3.0-0
+
+* Move from GitHub to Codeberg
+* Convert handling from raster to terra where possible (#1)
+
+## ipdw 2.0-0
 
 * Converted external (user-facing) operations from `sp` to `sf` (#19)
 * Dropped reliance on retiring `rgdal` and `rgeos` packages (#22)

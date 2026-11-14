@@ -14,7 +14,7 @@
 #'
 #' @return RasterLayer
 #'
-#' @importFrom raster raster rasterize reclassify
+#' @importFrom terra rast rasterize classify
 #' @importFrom sf st_polygon st_as_sf st_crs st_bbox
 #' @importFrom methods is
 #' @export
@@ -32,6 +32,7 @@
 #' # using a matrix object
 #' xymat <- matrix(3, 3, nrow = 1, ncol = 2)
 #' costras <- costrasterGen(xymat, pols, projstr = NULL)
+#' print(costras)
 #'
 #' # plotting
 #' plot(costras)
@@ -73,18 +74,18 @@ costrasterGen <- function(xymat, pols, extent = "polys", projstr,
 
   # generate cost raster
   if (resolution != 1) {
-    r <- raster::raster(nrow = nrow, ncol = ncol, crs = projstr, xmn = xmn,
-      xmx = xmx, ymn = ymn, ymx = ymx, resolution = resolution)
+    r <- terra::rast(nrows = nrow, ncols = ncol, crs = projstr, xmin = xmn,
+      xmax = xmx, ymin = ymn, ymax = ymx, resolution = resolution)
   } else {
-    r <- raster::raster(nrow = nrow, ncol = ncol, crs = projstr, xmn = xmn,
-      xmx = xmx, ymn = ymn, ymx = ymx)
+    r <- terra::rast(nrows = nrow, ncols = ncol, crs = projstr, xmin = xmn,
+      xmax = xmx, ymin = ymn, ymax = ymx)
   }
 
-  costras <- raster::rasterize(pols, r, silent = TRUE)
+  costras <- terra::rasterize(terra::vect(pols), r)
   m <- c(0, +Inf, 10000)
   rclmat <- matrix(m, ncol = 3, byrow = TRUE)
-  costras <- raster::reclassify(costras, rclmat)
-  costras <- raster::reclassify(costras, cbind(NA, 1))
+  costras <- terra::classify(costras, rclmat)
+  costras <- terra::classify(costras, cbind(NA, 1))
 
   return(costras)
 }
